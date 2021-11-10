@@ -4,6 +4,9 @@
             display: flex;
             flex-wrap: wrap;
             box-sizing: border-box;
+            position: absolute;
+            width: 100%;
+            height: 100%;
         }
         :root {
         --dice-size: 100px;
@@ -105,6 +108,46 @@
             background-color: red;
         }
 
+        #monster {
+            width: calc(var(--dice-size) * 10);
+            height: calc(var(--dice-size) * 10);
+            background-color: darkslategray;
+        }
+
+        .health-bar {
+            width: 100%;
+            height: 2%;
+            position: relative;
+        }
+
+        #monster-health {
+            position: absolute;
+            left: 0px;
+            top: 0px;
+        }
+
+        #monster-bar {
+            width: 100%;
+            height: 100%;
+            background-color: red;
+            transition-timing-function: ease-in-out;
+            transition-duration: 0.4s;
+        }
+
+
+        .portrait {
+            width: 1000px;
+            height: 1000px;
+            background-image : url("image/Idle.png");
+            animation: moveX 1s steps(4) infinite;
+            background-size: cover;
+        }
+
+        @keyframes moveX{
+            from{background-position-x:0px;}
+            to{background-position-x:-400%;}
+        }
+
     </style>
     <body>
         <div id="board">
@@ -121,6 +164,15 @@
             <div id="slot5"> </div>
             <div id="slot6"> </div>
             <div id="slot7"> </div>
+        </div>
+
+        <div id="monster">
+            <div class="health-bar">
+                <div id="monster-health">25/25</div>
+                <div id="monster-bar">
+                </div>
+            </div>
+            <div class="portrait"> </div>
         </div>
 
         <script>
@@ -153,6 +205,7 @@
                 },
                 monster: {
                     health: 25,
+                    maxHealth: 25,
                 },
                 currentRoll: [],
                 rollStats: [],
@@ -181,6 +234,26 @@
 
             function attack() {
                 console.log("attack" + state.rollStats[sidesType.SwordWood.id]);
+                state.monster.health -= state.rollStats[sidesType.SwordWood.id];
+                
+                state.monster.health = Math.max(0, state.monster.health);
+                
+                console.log("monster", state.monster);
+
+
+                let monsterHealth = document.getElementById("monster-health");
+                let monsterHealthBar = document.getElementById("monster-bar");
+                monsterHealthBar.style.width = 100 * (state.monster.health / state.monster.maxHealth) + '%';
+                monsterHealth.textContent = `${state.monster.health} / ${state.monster.maxHealth}`;
+                if (state.monster.health == 0) {
+                    console.log("Monster is dead");
+                    setTimeout(function() {
+                        state.monster.maxHealth = Math.floor(state.monster.maxHealth * 1.2);
+                        state.monster.health = state.monster.maxHealth;
+                        monsterHealthBar.style.width = 100 * (state.monster.health / state.monster.maxHealth) + '%';
+                        monsterHealth.textContent = `${state.monster.health} / ${state.monster.maxHealth}`;
+                    }, 1000);
+                }
             }
 
             function defence() {
