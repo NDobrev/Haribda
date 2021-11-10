@@ -35,22 +35,19 @@
             box-shadow: #FFF 0 -1px 4px, #ff0 0 -2px 10px, #ff8000 0 -10px 20px, red 0 -18px 40px, inset 0px 0px 0px 4px rgba(72,60,60,0);
         }
 
-        .face-1 {
+        .empty-side {
             background-image: url("image/X.png");
         }
-        .face-2 {
-            background-image: url("image/X.png");
-        }
-        .face-3 {
+        .shield-wood-side {
             background-image: url("image/ShieldWood.png");
         }
-        .face-4 {
+        .tome-side {
             background-image: url("image/Tome.png");
         }
-        .face-5 {
+        .coin-side {
             background-image: url("image/Coin.png");
         }
-        .face-6 {
+        .sword-wood-side {
             background-image: url("image/SwordWood.png");
         }
 
@@ -94,31 +91,108 @@
             justify-content: space-between;
         }
 
+        .skills {
+            position: absolute;
+            top: 1000px;
+            display: flex;
+            background-color: green;
+        }
+
+        .skills div {
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+            background-color: red;
+        }
+
     </style>
     <body>
         <div id="board">
-            <div class="container" id="org">
-                <div class="cube">
-                    <div class="face front face-1"></div>
-                    <div class="face back face-2"></div>
-                    <div class="face right face-3"></div>
-                    <div class="face left face-4"></div>
-                    <div class="face top face-5"></div>
-                    <div class="face bottom face-6"></div>
-                </div>
-            </div>
         </div>
 
         <div id="throw-button" onclick="throwDices()"><p>Throw</p></div>
 
+        <div class="skills">
+            <div id="slot0" class="normal-attack" onclick="attack()"> Attack </div>
+            <div id="slot1" class="shield-block" onclick="defence()"> Defence </div>
+            <div id="slot2"> </div>
+            <div id="slot3"> </div>
+            <div id="slot4"> </div>
+            <div id="slot5"> </div>
+            <div id="slot6"> </div>
+            <div id="slot7"> </div>
+        </div>
+
         <script>
-            let orgDice = document.getElementById("org");
+
+            const sidesType = {
+                Empty: { id: 0, class: "empty-side"},
+                SwordWood: { id: 1, class: "sword-wood-side"},
+                ShieldWood: { id: 2, class: "shield-wood-side"},
+            }
+
+            const defaultDice = [
+                sidesType.Empty,
+                sidesType.SwordWood,
+                sidesType.SwordWood,
+                sidesType.SwordWood,
+                sidesType.SwordWood,
+                sidesType.ShieldWood,
+            ];
+
             let board = document.getElementById("board");
-            for (let i = 0; i < 24; i++) {
-                board.appendChild(orgDice.cloneNode(true));
+            let diceTemplate = createDefaultDice();
+            for (let i = 0; i < 25; i++) {
+                board.appendChild(diceTemplate.cloneNode(true));
             }
             let dices = document.getElementsByClassName("cube");
-            let last = 0;
+
+            let state = {
+                player: {
+                    health: 100,
+                },
+                monster: {
+                    health: 25,
+                },
+                currentRoll: [],
+                rollStats: [],
+            }
+
+
+            function createDefaultDice() {
+                let create = (...arguments) => {
+                    let r = document.createElement("div");
+                    r.classList.add(...arguments);
+                    return r;
+                }
+
+                let cube = create("cube");
+                cube.appendChild(create("face", "front", defaultDice[0].class));
+                cube.appendChild(create("face", "back", defaultDice[1].class));
+                cube.appendChild(create("face", "right",  defaultDice[2].class));
+                cube.appendChild(create("face", "left",  defaultDice[3].class));
+                cube.appendChild(create("face", "top",  defaultDice[4].class));
+                cube.appendChild(create("face", "bottom",  defaultDice[5].class));
+
+                let dice = create("container");
+                dice.appendChild(cube);
+                return dice;
+            }
+
+            function attack() {
+                console.log("attack" + state.rollStats[sidesType.SwordWood.id]);
+            }
+
+            function defence() {
+                console.log("def" + state.rollStats[sidesType.ShieldWood.id]);
+            }
+
+            function calcRollStats(rolls) {
+                return rolls.reduce((stats, roll) => {
+                    stats[defaultDice[roll].id]++;
+                    return stats;
+                },  [0, 0, 0]);
+            }
 
             function throwDices() {
                 let faces = [
@@ -129,15 +203,20 @@
                     [270, 0, 0], // 5
                     [90, 0, 0], // 6
                 ]
+                state.currentRoll = [];
                 for (let dice of dices) {
                     let faceId = Math.floor(Math.random() * faces.length);
                     let face = faces[faceId].map(x => x + 360 * Math.round(Math.random()));
                     dice.style.transform = `rotateX(${face[0]}deg) rotateY(${face[1]}deg) rotateZ(${face[2]}deg)`;
                     dice.style.transition = 0.5 + Math.random() * 0.5 + 's';
+                    state.currentRoll.push(faceId);
                 }
+                console.log(state.currentRoll);
+                console.log(calcRollStats(state.currentRoll));
+                state.rollStats = calcRollStats(state.currentRoll);
             }
+
             let tick = (now) => {
-                last =now;
                 requestAnimationFrame(tick);
             }
             requestAnimationFrame(tick);
