@@ -1,7 +1,14 @@
 <html>
     <style>
+        * {
+            text-align: center;
+            user-select: none;
+        }
         body {
+            margin: 0px;
+            padding: 0px;
             display: flex;
+            flex-direction: row;
             flex-wrap: wrap;
             box-sizing: border-box;
             position: absolute;
@@ -22,7 +29,7 @@
             width: 100%;
             height: 100%;
             position: relative;
-            transition-timing-function: linear;
+            transition-timing-function: ease-out;
 
         }
         .face {
@@ -60,14 +67,12 @@
         .bottom {
             transform: rotateX(-90deg) translateZ(calc(var(--dice-size) / 2));
         }
-
         .right {
             transform: rotateY(90deg) translateZ(calc(var(--dice-size) / 2));
         }
         .left {
             transform: rotateY(-90deg) translateZ(calc(var(--dice-size) / 2));
         }
-
         .front {
             transform: rotateX(0deg) translateZ(calc(var(--dice-size) / 2));
         }
@@ -96,7 +101,8 @@
 
         .skills {
             position: absolute;
-            top: 1000px;
+            bottom: 0px;
+            left: 20%;
             display: flex;
             background-color: green;
         }
@@ -134,7 +140,6 @@
             transition-duration: 0.4s;
         }
 
-
         .portrait {
             width: 1000px;
             height: 1000px;
@@ -148,31 +153,58 @@
             to{background-position-x:-400%;}
         }
 
+        #main {
+          display: flex;
+        }
+
+        #left-bar {
+            height: 100%;
+            width: 5%;
+            background-color: orange;
+        }
+
+        #left-bar div{
+            height: 50px;
+            width: 100%;
+            background-color: purple;
+            margin-top: 20px;
+            justify-content: center;
+            padding-top: 30px;
+        }
+
     </style>
     <body>
-        <div id="board">
+        <div id="left-bar">
+            <div>Battle</div>
+            <div>Deck</div>
+            <div>Shop</div>
+            <div>Setting</div>
         </div>
-
-        <div id="throw-button" onclick="throwDices()"><p>Throw</p></div>
-
-        <div class="skills">
-            <div id="slot0" class="normal-attack" onclick="attack()"> Attack </div>
-            <div id="slot1" class="shield-block" onclick="defence()"> Defence </div>
-            <div id="slot2"> </div>
-            <div id="slot3"> </div>
-            <div id="slot4"> </div>
-            <div id="slot5"> </div>
-            <div id="slot6"> </div>
-            <div id="slot7"> </div>
-        </div>
-
-        <div id="monster">
-            <div class="health-bar">
-                <div id="monster-health">25/25</div>
-                <div id="monster-bar">
-                </div>
+        <div id="main">
+            <div id="board">
             </div>
-            <div class="portrait"> </div>
+
+            <div id="throw-button" onclick="throwDices()"><p>Throw</p></div>
+
+            <div class="skills">
+                <div id="slot0" class="normal-attack" onclick="attack()"> Attack </div>
+                <div id="slot1" class="shield-block" onclick="defence()"> Defence </div>
+                <div id="slot2"> </div>
+                <div id="slot3"> </div>
+                <div id="slot4"> </div>
+                <div id="slot5"> </div>
+                <div id="slot6"> </div>
+                <div id="slot7"> </div>
+            </div>
+
+            <div id="monster">
+                <div class="health-bar">
+                    <div id="monster-health">25/25</div>
+                    <div id="monster-bar">
+                    </div>
+                </div>
+                <div class="portrait"> </div>
+            </div>
         </div>
 
         <script>
@@ -279,9 +311,9 @@
                 state.currentRoll = [];
                 for (let dice of dices) {
                     let faceId = Math.floor(Math.random() * faces.length);
-                    let face = faces[faceId].map(x => x + 360 * Math.round(Math.random()));
+                    let face = faces[faceId].map(x => x + 360 * Math.round(Math.random() * 3 + 1));
                     dice.style.transform = `rotateX(${face[0]}deg) rotateY(${face[1]}deg) rotateZ(${face[2]}deg)`;
-                    dice.style.transition = 0.5 + Math.random() * 0.5 + 's';
+                    dice.style.transition = 0.5 + Math.random() * 4 + 's';
                     state.currentRoll.push(faceId);
                 }
                 console.log(state.currentRoll);
