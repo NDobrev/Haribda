@@ -15,8 +15,9 @@
             width: 100%;
             height: 100%;
         }
+
         :root {
-        --dice-size: 100px;
+        --dice-size: 4vw;
         }
         .container {
             width: var(--dice-size);
@@ -97,6 +98,7 @@
             flex-wrap: wrap;
             background-color: darkslategray;
             justify-content: space-between;
+
         }
 
         .skills {
@@ -141,8 +143,8 @@
         }
 
         .portrait {
-            width: 1000px;
-            height: 1000px;
+            width: calc(var(--dice-size) * 10);
+            height: calc(var(--dice-size) * 10);
             background-image : url("image/Idle.png");
             animation: moveX 1s steps(4) infinite;
             background-size: cover;
@@ -154,12 +156,15 @@
         }
 
         #main {
-          display: flex;
+            display: flex;
+            flex-grow: 1;
+            justify-content: center;
+            padding-top: 4vh;
         }
 
         #left-bar {
             height: 100%;
-            width: 5%;
+            width: 150px;
             background-color: orange;
         }
 
@@ -170,6 +175,14 @@
             margin-top: 20px;
             justify-content: center;
             padding-top: 30px;
+            transition-timing-function: ease-out;
+            transition-duration: 0.4s;
+        }
+
+        #left-bar div:hover {
+            background-color: yellow;
+            border-top: 5px solid snow;
+            height: 60px;
         }
 
     </style>
