@@ -197,6 +197,8 @@ body {
     height: var(--dice-size);
     background-color: red;
     margin: calc(var(--dice-size) / 10);
+    position: relative;
+    text-align: center;
 }
 
 .item-selected {
@@ -225,4 +227,13 @@ body {
 
 #craft .item {
     background-size: contain;
+}
+
+.remove-btn {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    background-color: grey;
+    width: calc(var(--dice-size) / 4);
+    height: calc(var(--dice-size) / 4);
 }

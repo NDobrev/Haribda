@@ -72,6 +72,7 @@
                     sideTypes.ShieldWood,
                     sideTypes.ShieldWood,
                 ],
+                selectedDiceIdx: 0,
                 rollStats: [],
             }
 
@@ -133,19 +134,48 @@
                     ];
             }
 
-            function selectDiceForCrafting(state, idx, dice, craft) {
-                if (state.selectedDice) {
-                    state.selectedDice.classList.remove("item-selected");
-                }
-                dice.classList.add("item-selected");
-                state.selectedDice = dice;
+            function removeSideFromDice(state, sideIdx) {
+                let diceIdx = state.selectedDiceIdx;
+                let dice = state.dices[diceIdx];
+                let side = dice[sideIdx];
+                state.sides.push(side);
+                dice[sideIdx] = sideTypes.Empty;
+                navigateTo("deck", state);
+            }
 
-                craft.innerHTML= ""
-                state.dices[idx].forEach((side) => {
+            function addSideToDice(state, sideIdx) {
+                let diceIdx = state.selectedDiceIdx;
+                let side = state.sides[sideIdx];
+                let dice = state.dices[diceIdx];
+                for (let i = 0; i < dice.length; ++i) {
+                    if (dice[i] == sideTypes.Empty) {
+                        state.sides.splice(i, 1);
+                        dice[i] = side;
+                        break;
+                    }
+                }
+                navigateTo("deck", state);
+            }
+
+            function selectDiceForCrafting(state, diceIdx, dice, craft) {
+                state.selectedDiceIdx = diceIdx;
+                navigateTo("deck", state);
+            }
+
+            function loadCraftBoard(state) {
+                 let diceIdx = state.selectedDiceIdx;
+                 return state.dices[diceIdx].map((side, sideIdx) => {
                     let sideItem = document.createElement("div");
                     sideItem.classList.add("item", side.class);
-                    craft.appendChild(sideItem);
-                })
+                    sideItem.textContent = "side " + sideIdx;
+
+                    // add remove button
+                    if (side != sideTypes.Empty) {
+                        sideItem.onclick = removeSideFromDice.bind(null, state, sideIdx);
+                    }
+
+                    return sideItem;
+                });
             }
 
             function loadDeckScreen(state) {
@@ -158,22 +188,27 @@
                 let facePicker  = document.createElement("div");
                 facePicker.id = "side-picker";
 
-
                 state.dices.forEach((dice, idx) => {
-                    console.log(dice, idx);
                     let diceItem = document.createElement("div");
                     diceItem.classList.add("item");
                     diceItem.textContent = "dice" + idx;
+                    if (state.selectedDiceIdx == idx) {
+                        diceItem.classList.add("item-selected");
+                    }
                     diceItem.onclick = selectDiceForCrafting.bind(null,state, idx, diceItem, diceCraft);
                     board.appendChild(diceItem);
                 })
 
+                loadCraftBoard(state).forEach(x=> {
+                    diceCraft.appendChild(x)
+                });
+
 
                 state.sides.forEach((side, idx) => {
-                    console.log(side, idx);
-                    let diceItem = document.createElement("div");
-                    diceItem.classList.add("item", side.class);
-                    facePicker.appendChild(diceItem);
+                    let sideItem = document.createElement("div");
+                    sideItem.classList.add("item", side.class);
+                    sideItem.onclick = addSideToDice.bind(null, state, idx);
+                    facePicker.appendChild(sideItem);
                 })
 
                 return [board , diceCraft, facePicker];
