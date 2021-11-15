@@ -183,3 +183,46 @@ body {
     border-top: 5px solid snow;
     height: 60px;
 }
+
+#deck {
+    width: calc(var(--dice-size) * 8);
+    height: calc(var(--dice-size) * 10);
+    display: flex;
+    flex-wrap: wrap;
+    background-color: darkslategray;
+}
+
+.item {
+    width: var(--dice-size);
+    height: var(--dice-size);
+    background-color: red;
+    margin: calc(var(--dice-size) / 10);
+}
+
+.item-selected {
+    border: 5px solid yellow;
+}
+
+#craft {
+    width: calc(var(--dice-size) * 5);
+    height: calc(var(--dice-size) * 10);
+    display: flex;
+    flex-wrap: wrap;
+    background-color: orange;
+}
+
+#side-picker {
+    width: calc(var(--dice-size) * 8);
+    height: calc(var(--dice-size) * 10);
+    display: flex;
+    flex-wrap: wrap;
+    background-color: palevioletred;
+}
+
+#side-picker .item {
+    background-size: contain;
+}
+
+#craft .item {
+    background-size: contain;
+}

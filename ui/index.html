@@ -13,19 +13,37 @@
 
         <script>
 
-            const sidesType = {
+            const sideTypes = {
                 Empty: { id: 0, class: "empty-side"},
                 SwordWood: { id: 1, class: "sword-wood-side"},
                 ShieldWood: { id: 2, class: "shield-wood-side"},
             }
 
+            const attackDice = [
+                sideTypes.SwordWood,
+                sideTypes.SwordWood,
+                sideTypes.SwordWood,
+                sideTypes.SwordWood,
+                sideTypes.SwordWood,
+                sideTypes.SwordWood,
+            ];
+
+            const defenceDice = [
+                sideTypes.ShieldWood,
+                sideTypes.ShieldWood,
+                sideTypes.ShieldWood,
+                sideTypes.ShieldWood,
+                sideTypes.ShieldWood,
+                sideTypes.ShieldWood,
+            ];
+
             const defaultDice = [
-                sidesType.Empty,
-                sidesType.SwordWood,
-                sidesType.SwordWood,
-                sidesType.SwordWood,
-                sidesType.SwordWood,
-                sidesType.ShieldWood,
+                sideTypes.Empty,
+                sideTypes.SwordWood,
+                sideTypes.SwordWood,
+                sideTypes.ShieldWood,
+                sideTypes.ShieldWood,
+                sideTypes.ShieldWood,
             ];
 
             let state = {
@@ -37,16 +55,32 @@
                     maxHealth: 25,
                 },
                 currentRoll: [],
+                dices: [
+                    attackDice,
+                    defenceDice,
+                    defaultDice,
+                ],
+
+                sides: [
+                    sideTypes.SwordWood,
+                    sideTypes.SwordWood,
+                    sideTypes.SwordWood,
+                    sideTypes.SwordWood,
+                    sideTypes.ShieldWood,
+                    sideTypes.ShieldWood,
+                    sideTypes.ShieldWood,
+                    sideTypes.ShieldWood,
+                    sideTypes.ShieldWood,
+                ],
                 rollStats: [],
             }
 
             function loadBoard(state) {
                 let board = document.createElement("div");
                 board.id = "board";
-                let diceTemplate = createDefaultDice();
-                for (let i = 0; i < 25; i++) {
-                    board.appendChild(diceTemplate.cloneNode(true));
-                }
+                state.dices.forEach(dice => {
+                    board.appendChild(createDice(dice));
+                })
                 
                 return board;
             }
@@ -99,9 +133,50 @@
                     ];
             }
 
+            function selectDiceForCrafting(state, idx, dice, craft) {
+                if (state.selectedDice) {
+                    state.selectedDice.classList.remove("item-selected");
+                }
+                dice.classList.add("item-selected");
+                state.selectedDice = dice;
+
+                craft.innerHTML= ""
+                state.dices[idx].forEach((side) => {
+                    let sideItem = document.createElement("div");
+                    sideItem.classList.add("item", side.class);
+                    craft.appendChild(sideItem);
+                })
+            }
 
             function loadDeckScreen(state) {
-                console.log("load deck")
+                let board = document.createElement("div");
+                board.id = "deck";
+
+                let diceCraft  = document.createElement("div");
+                diceCraft.id = "craft";
+
+                let facePicker  = document.createElement("div");
+                facePicker.id = "side-picker";
+
+
+                state.dices.forEach((dice, idx) => {
+                    console.log(dice, idx);
+                    let diceItem = document.createElement("div");
+                    diceItem.classList.add("item");
+                    diceItem.textContent = "dice" + idx;
+                    diceItem.onclick = selectDiceForCrafting.bind(null,state, idx, diceItem, diceCraft);
+                    board.appendChild(diceItem);
+                })
+
+
+                state.sides.forEach((side, idx) => {
+                    console.log(side, idx);
+                    let diceItem = document.createElement("div");
+                    diceItem.classList.add("item", side.class);
+                    facePicker.appendChild(diceItem);
+                })
+
+                return [board , diceCraft, facePicker];
             }
 
             function loadShopScreen(state) {
@@ -121,13 +196,13 @@
                     elementsInScreen = loadBattleScreen(state);
                     break;
                     case "deck":
-                    elementsInScreen = loadDeckScreen(main);
+                    elementsInScreen = loadDeckScreen(state);
                     break;
                     case "shop":
-                    elementsInScreen = loadShopScreen(main);
+                    elementsInScreen = loadShopScreen(state);
                     break;
                     case "settings":
-                    elementsInScreen = loadSettingScreen(main);
+                    elementsInScreen = loadSettingScreen(state);
                     break;
                 }
                 if (elementsInScreen instanceof Array) {
@@ -139,10 +214,10 @@
                 }
             }
 
-            navigateTo("battle", state);
+            navigateTo("deck", state);
 
 
-            function createDefaultDice() {
+            function createDice(diceSides) {
                 let create = (...arguments) => {
                     let r = document.createElement("div");
                     r.classList.add(...arguments);
@@ -150,12 +225,12 @@
                 }
 
                 let cube = create("cube");
-                cube.appendChild(create("face", "front", defaultDice[0].class));
-                cube.appendChild(create("face", "back", defaultDice[1].class));
-                cube.appendChild(create("face", "right",  defaultDice[2].class));
-                cube.appendChild(create("face", "left",  defaultDice[3].class));
-                cube.appendChild(create("face", "top",  defaultDice[4].class));
-                cube.appendChild(create("face", "bottom",  defaultDice[5].class));
+                cube.appendChild(create("face", "front", diceSides[0].class));
+                cube.appendChild(create("face", "back", diceSides[1].class));
+                cube.appendChild(create("face", "right",  diceSides[2].class));
+                cube.appendChild(create("face", "left",  diceSides[3].class));
+                cube.appendChild(create("face", "top",  diceSides[4].class));
+                cube.appendChild(create("face", "bottom",  diceSides[5].class));
 
                 let dice = create("container");
                 dice.appendChild(cube);
@@ -163,8 +238,8 @@
             }
 
             function attack() {
-                console.log("attack" + state.rollStats[sidesType.SwordWood.id]);
-                state.monster.health -= state.rollStats[sidesType.SwordWood.id];
+                console.log("attack" + state.rollStats[sideTypes.SwordWood.id]);
+                state.monster.health -= state.rollStats[sideTypes.SwordWood.id];
                 
                 state.monster.health = Math.max(0, state.monster.health);
                 
@@ -187,7 +262,7 @@
             }
 
             function defence() {
-                console.log("def" + state.rollStats[sidesType.ShieldWood.id]);
+                console.log("def" + state.rollStats[sideTypes.ShieldWood.id]);
             }
 
             function calcRollStats(rolls) {
