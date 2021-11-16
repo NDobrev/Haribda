@@ -11,6 +11,7 @@ class BattleScreen {
         this.targeElement.appendChild(loadThrowButton(state));
         this.targeElement.appendChild(loadSkills(state));
         this.targeElement.appendChild(loadMonster(state));
+        engine.on("roll-stats-update", updateSkills);
     }
 
     unload() {
@@ -51,6 +52,25 @@ function loadBoard(state) {
     })
 
     return board;
+}
+
+function updateSkills(state) {
+    let skills = document.getElementById("skills");
+    if (!skills) return;
+
+    skills.innerHTML = "";
+
+    for (let i = 0; i < 8; ++i) {
+        let skill =  document.createElement("div");
+        skill.id = "slot" + i;
+        skills.appendChild(skill);
+    }
+    skills.children[0].className = "normal-attack";
+    skills.children[0].onclick = attack.bind(null, state);
+    skills.children[0].textContent = "Attack: x" + state.rollStats[sideTypes.SwordWood.id];
+    skills.children[1].className = "shield-block";
+    skills.children[1].onclick = defence;
+    skills.children[1].textContent = "Defence: x" + state.rollStats[sideTypes.ShieldWood.id];
 }
 
 function loadSkills(state) {
@@ -119,7 +139,6 @@ function defence(state) {
 
 function calcRollStats(state) {
     let result = numbers(Object.keys(sideTypes).length).map(x => 0);
-    console.log(Object.keys(sideTypes).length, result);
     for (let i = 0; i < state.currentRoll.length; ++i) {
         let rolledSideId = state.currentRoll[i];
         let rolledSide = state.dices[i][rolledSideId];
@@ -130,7 +149,6 @@ function calcRollStats(state) {
 
 function throwDices(state) {
     let dices = document.getElementsByClassName("cube");
-
     state.currentRoll = [];
     for (let dice of dices) {
         let faceId = Math.floor(Math.random() * faces.length);
@@ -139,9 +157,9 @@ function throwDices(state) {
         dice.style.transition = 0.5 + Math.random() * 4 + 's';
         state.currentRoll.push(faceId);
     }
-    console.log(state.currentRoll);
-    state.rollStats = calcRollStats(state);
-    console.log(state.rollStats);
     engine.trigger("throw", state);
+
+    state.rollStats = calcRollStats(state);
+    engine.trigger("roll-stats-update", state);
 }
 
