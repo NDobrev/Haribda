@@ -46,9 +46,20 @@
                 sideTypes.ShieldWood,
             ];
 
+            const emptyDice = [
+                sideTypes.Empty,
+                sideTypes.Empty,
+                sideTypes.Empty,
+                sideTypes.Empty,
+                sideTypes.Empty,
+                sideTypes.Empty,
+            ];
+
+
             let state = {
                 player: {
                     health: 100,
+                    money: 1000,
                 },
                 monster: {
                     health: 25,
@@ -71,6 +82,24 @@
                     sideTypes.ShieldWood,
                     sideTypes.ShieldWood,
                     sideTypes.ShieldWood,
+                ],
+
+                shop: [
+                    {
+                        type: "dice",
+                        price: 100,
+                        value: [...emptyDice],
+                    },
+                    {
+                        type: "side",
+                        price: 10,
+                        value: sideTypes.SwordWood,
+                    },
+                    {
+                        type: "side",
+                        price: 10,
+                        value: sideTypes.SwordWood,
+                    }
                 ],
                 selectedDiceIdx: 0,
                 rollStats: [],
@@ -218,8 +247,78 @@
                 return [board , diceCraft, facePicker];
             }
 
+            function buyItem(state, idx) {
+                if (state.player.money > state.shop[idx].price) {
+                    state.player.money -= state.shop[idx].price;
+                    let item = state.shop.splice(idx, 1)[0];
+                    if (item.type == "dice") {
+                        state.dices.push(item.value);
+                    } else if (item.type == "side") {
+                        state.sides.push(item.value);
+                    }
+                }
+                navigateTo("shop", state);
+            }
+
+            function sellDice(state, idx) {
+                state.player.money += 50;
+                let dice = state.dices.splice(idx, 1)[0];
+                state.shop.push({
+                    type: "dice",
+                    price: 100,
+                    value: dice
+                })
+                navigateTo("shop", state);
+            }
+
+            function sellSide(state, idx) {
+                state.player.money += 5;
+                let side = state.sides.splice(idx, 1)[0];
+                state.shop.push({
+                    type: "side",
+                    price: 10,
+                    value: side
+                })
+                navigateTo("shop", state);
+            }
+
             function loadShopScreen(state) {
-                console.log("load shop")
+                let shop = document.createElement("div");
+                shop.id = "shop";
+
+                state.shop.forEach((item, idx) => {
+                    let shopItem = document.createElement("div");
+                    shopItem.classList.add("item");
+                    if (item.type == "side") {
+                        shopItem.classList.add(item.value.class);
+                    }
+                    else {
+                        shopItem.textContent = `type: ${item.type} price: ${item.price}`;
+                    }
+                    shopItem.onclick = buyItem.bind(null, state, idx);
+                    shop.appendChild(shopItem);
+                })
+
+
+                let inventory = document.createElement("div");
+                inventory.id = "inventory";
+
+                state.dices.forEach((dice, idx) => {
+                    let inventoryItem = document.createElement("div");
+                    inventoryItem.classList.add("item");
+                    inventoryItem.textContent = `dice: ${idx}`;
+                    inventoryItem.onclick = sellDice.bind(null, state, idx);
+                    inventory.appendChild(inventoryItem);
+                })
+
+                state.sides.forEach((side, idx) => {
+                    let inventoryItem = document.createElement("div");
+                    inventoryItem.classList.add("item", side.class);
+                    inventoryItem.onclick = sellSide.bind(null, state, idx);
+                    inventory.appendChild(inventoryItem);
+                })
+
+                return [shop, inventory];
             }
 
             function loadSettingScreen(state) {
@@ -253,7 +352,7 @@
                 }
             }
 
-            navigateTo("deck", state);
+            navigateTo("shop", state);
 
 
             function createDice(diceSides) {

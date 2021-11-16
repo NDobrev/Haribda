@@ -199,6 +199,7 @@ body {
     margin: calc(var(--dice-size) / 10);
     position: relative;
     text-align: center;
+    background-size: contain;
 }
 
 .item-selected {
@@ -221,14 +222,6 @@ body {
     background-color: palevioletred;
 }
 
-#side-picker .item {
-    background-size: contain;
-}
-
-#craft .item {
-    background-size: contain;
-}
-
 .remove-btn {
     position: absolute;
     right: 0px;
@@ -236,4 +229,20 @@ body {
     background-color: grey;
     width: calc(var(--dice-size) / 4);
     height: calc(var(--dice-size) / 4);
+}
+
+#shop {
+    width: calc(var(--dice-size) * 10);
+    height: calc(var(--dice-size) * 10);
+    display: flex;
+    flex-wrap: wrap;
+    background-color: peru;
+}
+
+#inventory {
+    width: calc(var(--dice-size) * 10);
+    height: calc(var(--dice-size) * 10);
+    display: flex;
+    flex-wrap: wrap;
+    background-color: palevioletred;
 }
