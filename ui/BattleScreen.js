@@ -11,7 +11,7 @@ class BattleScreen {
         this.targeElement.appendChild(loadThrowButton(state));
         this.targeElement.appendChild(loadSkills(state));
         this.targeElement.appendChild(loadMonster(state));
-        engine.on("roll-stats-update", updateSkills);
+        engine.on("roll-stats-update", updateSkills.bind(null, this.state));
     }
 
     unload() {
@@ -134,7 +134,7 @@ function attack(state) {
 }
 
 function defence(state) {
-    console.log("def" + state.rollStats[sideTypes.ShieldWood.id]);
+    console.log("def");
 }
 
 function calcRollStats(state) {
@@ -160,6 +160,6 @@ function throwDices(state) {
     engine.trigger("throw", state);
 
     state.rollStats = calcRollStats(state);
-    engine.trigger("roll-stats-update", state);
+    engine.trigger("roll-stats-update");
 }
 

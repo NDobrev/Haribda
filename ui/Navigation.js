@@ -3,7 +3,6 @@ function navigateTo(panel, state) {
         gCurrentScreen.unload();
     }
     let main = document.getElementById("main");
-    let elementsInScreen;
     switch(panel) {
         case "battle":
         gCurrentScreen =  new BattleScreen(state);

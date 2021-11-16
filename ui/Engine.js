@@ -1,7 +1,6 @@
 class EventService {
     constructor() {
         this.handlers = {
-
         };
     }
     on(name, handle) {
@@ -23,6 +22,11 @@ class EventService {
         let [name, ...eventArgs] = arguments;
         if (!this.handlers[name]) {
             return;
+        }
+        if (eventArgs.length) {
+            console.log(`Event: ${name}, Args: ${eventArgs.map(x => JSON.stringify(x)).join(',')}`);
+        } else {
+            console.log(`Event: ${name}`);
         }
         for (let handle of this.handlers[name]) {
             handle(...eventArgs);
