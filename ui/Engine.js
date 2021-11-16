@@ -21,6 +21,7 @@ class EventService {
     trigger() {
         let [name, ...eventArgs] = arguments;
         if (!this.handlers[name]) {
+            console.error(`Unhandled event ${name}`);
             return;
         }
         if (eventArgs.length) {

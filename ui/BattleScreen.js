@@ -11,13 +11,32 @@ class BattleScreen {
         this.targeElement.appendChild(loadThrowButton(state));
         this.targeElement.appendChild(loadSkills(state));
         this.targeElement.appendChild(loadMonster(state));
-        engine.on("roll-stats-update", updateSkills.bind(null, this.state));
+        engine.on("roll-stats-update", updateSkills);
+        engine.on("dice-face-changed", updateDaces);
+        engine.on("enemy-health-changed", updateHealth);
+
+
+        engine.trigger("enemy-health-changed", state.monster);
     }
 
     unload() {
         this.targeElement.innerHTML = "";
+
+
+        engine.off("roll-stats-update", updateSkills);
+        engine.off("dice-face-changed", updateDaces);
+        engine.off("enemy-health-changed", updateHealth);
     }
 }
+
+let faces = [
+    [0, 0, 0], // 1
+    [180, 0, 0], // 2
+    [0, 270, 0], // 3
+    [0, 90, 0], // 4
+    [270, 0, 0], // 5
+    [90, 0, 0], // 6
+]
 
 function createDice(diceSides) {
     let create = (...arguments) => {
@@ -55,26 +74,15 @@ function loadBoard(state) {
     return board;
 }
 
-function updateSkills(state) {
+function updateSkills(oldStats, newStats) {
     let skills = document.getElementById("skills");
     if (!skills) return;
 
-    skills.innerHTML = "";
-
-    for (let i = 0; i < 8; ++i) {
-        let skill =  document.createElement("div");
-        skill.id = "slot" + i;
-        skills.appendChild(skill);
-    }
-    skills.children[0].className = "normal-attack";
-    skills.children[0].onclick = attack.bind(null, state);
-    skills.children[0].textContent = "Attack: x" + state.rollStats[sideTypes.SwordWood.id];
-    skills.children[1].className = "shield-block";
-    skills.children[1].onclick = defence;
-    skills.children[1].textContent = "Defence: x" + state.rollStats[sideTypes.ShieldWood.id];
+    skills.children[0].textContent = "Attack: x" + newStats[sideTypes.SwordWood.id];
+    skills.children[1].textContent = "Defence: x" + newStats[sideTypes.ShieldWood.id];
 }
 
-function loadSkills(state) {
+function loadSkills() {
     let skills = document.createElement("div");
     skills.id = "skills";
     for (let i = 0; i < 8; ++i) {
@@ -83,28 +91,28 @@ function loadSkills(state) {
         skills.appendChild(skill);
     }
     skills.children[0].className = "normal-attack";
-    skills.children[0].onclick = attack.bind(null, state);
+    skills.children[0].onclick = () => engine.trigger("use-skill", "normal-attack");
     skills.children[0].textContent = "Attack";
     skills.children[1].className = "shield-block";
-    skills.children[1].onclick = defence;
+    skills.children[1].onclick = () => engine.trigger("use-skill", "shield-block");
     skills.children[1].textContent = "Defence";
     return skills;
 }
 
-function loadThrowButton(state) {
+function loadThrowButton() {
     let btn = document.createElement("div");
     btn.id = "throw-button";
     btn.textContent = "Throw";
-    btn.onclick = throwDices.bind(null, state);
+    btn.onclick = () => engine.trigger("throw-dices");
     return btn;
 }
 
-function loadMonster(state) {
+function loadMonster() {
     let monster = document.createElement("div");
     monster.id = "monster";
     monster.innerHTML = 
     '<div id="health-bar">'
-    + `    <div id="monster-health">${state.monster.health} / ${state.monster.maxHealth}</div>`
+    + `    <div id="monster-health"></div>`
     + `    <div id="monster-bar">`
     + `    </div>`
     + `</div>`
@@ -112,55 +120,28 @@ function loadMonster(state) {
     return monster;
 }
 
-
-
-function attack(state) {
-    state.monster.health -= state.rollStats[sideTypes.SwordWood.id];
-    
-    state.monster.health = Math.max(0, state.monster.health);
-
+function updateHealth(enemy) {
     let monsterHealth = document.getElementById("monster-health");
     let monsterHealthBar = document.getElementById("monster-bar");
-    monsterHealthBar.style.width = 100 * (state.monster.health / state.monster.maxHealth) + '%';
-    monsterHealth.textContent = `${state.monster.health} / ${state.monster.maxHealth}`;
-    if (state.monster.health == 0) {
-        console.log("Monster is dead");
-        setTimeout(function() {
-            state.monster.maxHealth = Math.floor(state.monster.maxHealth * 1.2);
-            state.monster.health = state.monster.maxHealth;
-            monsterHealthBar.style.width = 100 * (state.monster.health / state.monster.maxHealth) + '%';
-            monsterHealth.textContent = `${state.monster.health} / ${state.monster.maxHealth}`;
-        }, 1000);
-    }
+    monsterHealthBar.style.width = 100 * (enemy.health / enemy.maxHealth) + '%';
+    monsterHealth.textContent = `${enemy.health} / ${enemy.maxHealth}`;
 }
 
-function defence(state) {
+function defence() {
     console.log("def");
 }
 
-function calcRollStats(state) {
-    let result = numbers(Object.keys(sideTypes).length).map(x => 0);
-    for (let i = 0; i < state.currentRoll.length; ++i) {
-        let rolledSideId = state.currentRoll[i];
-        let rolledSide = state.dices[i][rolledSideId];
-        result[rolledSide.id]++;
-    }
-    return result;
-}
-
-function throwDices(state) {
+function updateDaces(oldfaces, newfaces) {
     let dices = document.getElementsByClassName("cube");
-    state.currentRoll = [];
-    for (let dice of dices) {
-        let faceId = Math.floor(Math.random() * faces.length);
-        let face = faces[faceId].map(x => x + 360 * Math.round(Math.random() * 3 + 1));
-        dice.style.transform = `rotateX(${face[0]}deg) rotateY(${face[1]}deg) rotateZ(${face[2]}deg)`;
-        dice.style.transition = 0.5 + Math.random() * 4 + 's';
-        state.currentRoll.push(faceId);
+    if (dices.length != newfaces.length) {
+        console.error("Faces and dices doesn't match")
+        return;
     }
-    engine.trigger("throw", state);
-
-    state.rollStats = calcRollStats(state);
-    engine.trigger("roll-stats-update");
+    for (let i = 0; i < dices.length; ++i) {
+        let faceId = newfaces[i];
+        let face = faces[faceId].map(x => x + 360 * Math.round(Math.random() * 3 + 1));
+        dices[i].style.transform = `rotateX(${face[0]}deg) rotateY(${face[1]}deg) rotateZ(${face[2]}deg)`;
+        dices[i].style.transition = (1.5 + Math.random() * 1) + 's';
+    }
 }
 
