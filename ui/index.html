@@ -55,6 +55,15 @@
                 sideTypes.Empty,
             ];
 
+            let faces = [
+                [0, 0, 0], // 1
+                [180, 0, 0], // 2
+                [0, 270, 0], // 3
+                [0, 90, 0], // 4
+                [270, 0, 0], // 5
+                [90, 0, 0], // 6
+            ]
+
 
             let state = {
                 player: {
@@ -65,7 +74,7 @@
                     health: 25,
                     maxHealth: 25,
                 },
-                currentRoll: [],
+                currentRoll: numbers(Object.keys(sideTypes).length).map(x => 0),
                 dices: [
                     attackDice,
                     defenceDice,
@@ -112,10 +121,14 @@
             function loadBoard(state) {
                 let board = document.createElement("div");
                 board.id = "board";
-                state.dices.forEach(dice => {
-                    board.appendChild(createDice(dice));
+                state.dices.forEach((dice, idx) => {
+                    let diceEl = createDice(dice);
+                    let cube = diceEl.querySelector(".cube");
+                    let face = faces[state.currentRoll[idx]];
+                    cube.style.transform = `rotateX(${face[0]}deg) rotateY(${face[1]}deg) rotateZ(${face[2]}deg)`;
+                    board.appendChild(diceEl);
                 })
-                
+
                 return board;
             }
 
@@ -376,13 +389,9 @@
             }
 
             function attack() {
-                console.log("attack" + state.rollStats[sideTypes.SwordWood.id]);
                 state.monster.health -= state.rollStats[sideTypes.SwordWood.id];
                 
                 state.monster.health = Math.max(0, state.monster.health);
-                
-                console.log("monster", state.monster);
-
 
                 let monsterHealth = document.getElementById("monster-health");
                 let monsterHealthBar = document.getElementById("monster-bar");
@@ -416,14 +425,7 @@
 
             function throwDices() {
                 let dices = document.getElementsByClassName("cube");
-                let faces = [
-                    [0, 0, 0], // 1
-                    [180, 0, 0], // 2
-                    [0, 270, 0], // 3
-                    [0, 90, 0], // 4
-                    [270, 0, 0], // 5
-                    [90, 0, 0], // 6
-                ]
+
                 state.currentRoll = [];
                 for (let dice of dices) {
                     let faceId = Math.floor(Math.random() * faces.length);
@@ -437,10 +439,6 @@
                 console.log(state.rollStats);
             }
 
-            let tick = (now) => {
-                requestAnimationFrame(tick);
-            }
-            requestAnimationFrame(tick);
         </script>
     </body>
 </html>
