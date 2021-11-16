@@ -46,7 +46,8 @@ function loadBoard(state) {
     state.dices.forEach((dice, idx) => {
         let diceEl = createDice(dice);
         let cube = diceEl.querySelector(".cube");
-        let face = faces[state.currentRoll[idx]];
+        let faceId = state.currentRoll[idx] || 0;
+        let face = faces[faceId];
         cube.style.transform = `rotateX(${face[0]}deg) rotateY(${face[1]}deg) rotateZ(${face[2]}deg)`;
         board.appendChild(diceEl);
     })

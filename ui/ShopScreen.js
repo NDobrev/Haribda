@@ -40,8 +40,8 @@ class ShopScreen {
             inventoryItem.onclick = sellSide.bind(null, state, idx);
             inventory.appendChild(inventoryItem);
         })
-        this.targeElement.appendChild(shop);
         this.targeElement.appendChild(inventory);
+        this.targeElement.appendChild(shop);
     }
 
     unload() {
