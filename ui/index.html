@@ -76,6 +76,10 @@
                 rollStats: [],
             }
 
+            function numbers (n) {
+                return [...Array(n).keys()]
+            }
+
             function loadBoard(state) {
                 let board = document.createElement("div");
                 board.id = "board";
@@ -300,11 +304,15 @@
                 console.log("def" + state.rollStats[sideTypes.ShieldWood.id]);
             }
 
-            function calcRollStats(rolls) {
-                return rolls.reduce((stats, roll) => {
-                    stats[defaultDice[roll].id]++;
-                    return stats;
-                },  [0, 0, 0]);
+            function calcRollStats(state) {
+                let result = numbers(Object.keys(sideTypes).length).map(x => 0);
+                console.log(Object.keys(sideTypes).length, result);
+                for (let i = 0; i < state.currentRoll.length; ++i) {
+                    let rolledSideId = state.currentRoll[i];
+                    let rolledSide = state.dices[i][rolledSideId];
+                    result[rolledSide.id]++;
+                }
+                return result;
             }
 
             function throwDices() {
@@ -326,8 +334,8 @@
                     state.currentRoll.push(faceId);
                 }
                 console.log(state.currentRoll);
-                console.log(calcRollStats(state.currentRoll));
-                state.rollStats = calcRollStats(state.currentRoll);
+                state.rollStats = calcRollStats(state);
+                console.log(state.rollStats);
             }
 
             let tick = (now) => {
