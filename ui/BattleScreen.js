@@ -7,10 +7,10 @@ class BattleScreen {
     load(where) {
         this.targeElement = where;
         let state = this.state;
-        this.targeElement.appendChild(loadBoard(state));
-        this.targeElement.appendChild(loadThrowButton(state));
-        this.targeElement.appendChild(loadSkills(state));
-        this.targeElement.appendChild(loadMonster(state));
+        this.targeElement.appendChild(renderBoard(state));
+        this.targeElement.appendChild(renderThrowButton(state));
+        this.targeElement.appendChild(renderSkills(state));
+        this.targeElement.appendChild(rednerEnemy(state));
         engine.on("roll-stats-update", updateSkills);
         engine.on("dice-face-changed", updateDaces);
         engine.on("enemy-health-changed", updateHealth);
@@ -59,7 +59,7 @@ function createDice(diceSides) {
 }
 
 
-function loadBoard(state) {
+function renderBoard(state) {
     let board = document.createElement("div");
     board.id = "board";
     state.dices.forEach((dice, idx) => {
@@ -74,15 +74,32 @@ function loadBoard(state) {
     return board;
 }
 
-function updateSkills(oldStats, newStats) {
+function updateSkills(state) {
     let skills = document.getElementById("skills");
     if (!skills) return;
 
-    skills.children[0].textContent = "Attack: x" + newStats[sideTypes.SwordWood.id];
-    skills.children[1].textContent = "Defence: x" + newStats[sideTypes.ShieldWood.id];
+    updateSkillsElement(state, skills.children);
 }
 
-function loadSkills() {
+function updateSkillsElement(state , skillSlots) {
+    if (state.skills.length > skillSlots.length) {
+        console.error("Invalid skill count in state");
+        return;
+    }
+    for (let i = 0; i < state.skills.length; ++i) {
+        let skillElement = skillSlots[i];
+        let skill = state.skills[i];
+        let rollsForSkill = state.rollStats[skill.affectedBy.id];
+        skillElement.className = skill.class;
+        if (rollsForSkill) {
+            skillElement.textContent = `${skill.name}: x${rollsForSkill} `;
+        } else {
+            skillElement.textContent = `${skill.name}`;
+        }
+    }
+}
+
+function renderSkills(state) {
     let skills = document.createElement("div");
     skills.id = "skills";
     for (let i = 0; i < 8; ++i) {
@@ -90,16 +107,11 @@ function loadSkills() {
         skill.id = "slot" + i;
         skills.appendChild(skill);
     }
-    skills.children[0].className = "normal-attack";
-    skills.children[0].onclick = () => engine.trigger("use-skill", "normal-attack");
-    skills.children[0].textContent = "Attack";
-    skills.children[1].className = "shield-block";
-    skills.children[1].onclick = () => engine.trigger("use-skill", "shield-block");
-    skills.children[1].textContent = "Defence";
+    updateSkillsElement(state, skills.children);
     return skills;
 }
 
-function loadThrowButton() {
+function renderThrowButton() {
     let btn = document.createElement("div");
     btn.id = "throw-button";
     btn.textContent = "Throw";
@@ -107,13 +119,14 @@ function loadThrowButton() {
     return btn;
 }
 
-function loadMonster() {
+function rednerEnemy(state) {
     let monster = document.createElement("div");
-    monster.id = "monster";
+    monster.id = "enemy";
     monster.innerHTML = 
-    '<div id="health-bar">'
-    + `    <div id="monster-health"></div>`
-    + `    <div id="monster-bar">`
+    `<div id="enemy-name"> Place holder Monster name</div>`
+    + `<div id="enemy-health-bar">`
+    + `    <div id="enemy-health"></div>`
+    + `    <div id="enemy-bar">`
     + `    </div>`
     + `</div>`
     + `<div id="portrait"> </div>`
@@ -121,8 +134,8 @@ function loadMonster() {
 }
 
 function updateHealth(enemy) {
-    let monsterHealth = document.getElementById("monster-health");
-    let monsterHealthBar = document.getElementById("monster-bar");
+    let monsterHealth = document.getElementById("enemy-health");
+    let monsterHealthBar = document.getElementById("enemy-bar");
     monsterHealthBar.style.width = 100 * (enemy.health / enemy.maxHealth) + '%';
     monsterHealth.textContent = `${enemy.health} / ${enemy.maxHealth}`;
 }

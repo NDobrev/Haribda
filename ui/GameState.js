@@ -57,6 +57,7 @@ function loadGame() {
         monster: {
             health: 5,
             maxHealth: 5,
+            monsterName: "Green goblin"
         },
         currentRoll: numbers(Object.keys(sideTypes).length).map(x => 0),
         dices: [
@@ -98,6 +99,20 @@ function loadGame() {
                 value: sideTypes.SwordWood,
             }
         ],
+        skills: [
+            {
+                name: "Normal attack",
+                class: "normal-attack",
+                affectedBy: sideTypes.SwordWood,
+                execute: attack
+            },
+            {
+                name: "Shield block",
+                class: "shield-block",
+                affectedBy: sideTypes.ShieldWood,
+                execute: (state) => {}
+            }
+        ],
         rollStats: [],
     }
 }
@@ -128,21 +143,28 @@ function calcDiceStats(state, oldDices, newDices) {
     }
     let old = state.rollStats; 
     state.rollStats = result;
-    engine.trigger("roll-stats-update", old, result);
+    engine.trigger("roll-stats-update", state);
 }
 
-function useSkill(state, skill) {
+function useSkill(state, skillName) {
+    if (state.rollStats.length == 0) {
+        engine.trigger("no-active-roll");
+        return;
+    }
+    let skill = state.skills.find((x) => x.class = skillName);
+    skill.execute(state);
+}
+
+function attack(state) {
     if (state.monster.health == 0) {
         return;
     }
-    if (skill == "normal-attack") {
-        state.monster.health -= state.rollStats[sideTypes.SwordWood.id];
-        state.monster.health = Math.max(0, state.monster.health);
-        if (state.monster.health == 0) {
-            engine.trigger("enemy-is-dead");
-        }
-        engine.trigger("enemy-health-changed", state.monster);
+    state.monster.health -= state.rollStats[sideTypes.SwordWood.id];
+    state.monster.health = Math.max(0, state.monster.health);
+    if (state.monster.health == 0) {
+        engine.trigger("enemy-is-dead");
     }
+    engine.trigger("enemy-health-changed", state.monster);
 }
 
 function deadEnemy(state) {
