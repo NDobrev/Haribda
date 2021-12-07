@@ -82,14 +82,14 @@ class DeckScreen {
     updateCraftDeck(dice) {
         let items = this.diceCraftDeck.children;
         let diceIdx = this.seletedDiceIdx;
-        for (let sideIdx = 0; sideIdx < dice.length; ++sideIdx) {
+        for (let sideIdx = 0; sideIdx < dice.sides.length; ++sideIdx) {
             let item = items[sideIdx];
             item.className = ""
-            item.classList.add("item", dice[sideIdx].class);
+            item.classList.add("item", dice.sides[sideIdx].class);
             item.textContent = "side " + sideIdx;
     
-            if (dice[sideIdx].id != sideTypes.Empty.id) {
-                console.log(dice[sideIdx].id)
+            if (dice.sides[sideIdx].id != sideTypes.Empty.id) {
+                console.log(dice.sides[sideIdx].id)
                 item.onclick = () => engine.trigger("remove-dice-side", diceIdx, sideIdx);
             } else {
                 item.onclick = null;
@@ -100,7 +100,7 @@ class DeckScreen {
 
 function loadCraftBoard(state) {
      let diceIdx = 0;
-     return state.dices[diceIdx].map((side, sideIdx) => {
+     return state.dices[diceIdx].sides.map((side, sideIdx) => {
         let sideItem = document.createElement("div");
         return sideItem;
     });

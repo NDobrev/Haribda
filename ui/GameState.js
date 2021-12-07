@@ -41,6 +41,14 @@ const emptyDice = [
     sideTypes.Empty,
 ];
 
+function createDiceBySides(sides) {
+    return {
+        sides: [...sides],
+        spended: 0,
+        value: 100
+    }
+}
+
 let gCurrentScreen = 0;
 localStorage.setItem("gameState", null);
 function loadGame() {
@@ -51,7 +59,7 @@ function loadGame() {
 
     return {
         player: {
-            health: 100,
+            health: 5,
             money: 1000,
         },
         monster: {
@@ -61,13 +69,13 @@ function loadGame() {
         },
         currentRoll: numbers(Object.keys(sideTypes).length).map(x => 0),
         dices: [
-            [...attackDice],
-            [...defenceDice],
-            [...defaultDice],
-            [...defaultDice],
-            [...defaultDice],
-            [...defaultDice],
-            [...defaultDice],
+            createDiceBySides(attackDice),
+            createDiceBySides(defenceDice),
+            createDiceBySides(defaultDice),
+            createDiceBySides(defaultDice),
+            createDiceBySides(defaultDice),
+            createDiceBySides(defaultDice),
+            createDiceBySides(defaultDice),
         ],
     
         sides: [
@@ -125,6 +133,10 @@ setInterval(() => {
 }, 1000)
 
 function throwDices(state) {
+    if (state.player.throwsLeft == 0) {
+        console.log("You are dead");
+        return;
+    }
     let faceIdxs = numbers(state.dices.length)
     .map(x => {
         return Math.floor(Math.random() * faces.length);
@@ -132,13 +144,14 @@ function throwDices(state) {
     let old = state.currentRoll;
     state.currentRoll = faceIdxs;
     engine.trigger("dice-face-changed", old, faceIdxs);
+    engine.trigger("throw-count-changed", state.player.throwsLeft);
 }
 
 function calcDiceStats(state, oldDices, newDices) {
     let result = numbers(Object.keys(sideTypes).length).map(x => 0);
     for (let i = 0; i < state.currentRoll.length; ++i) {
         let rolledSideId = state.currentRoll[i];
-        let rolledSide = state.dices[i][rolledSideId];
+        let rolledSide = state.dices[i].sides[rolledSideId];
         result[rolledSide.id]++;
     }
     let old = state.rollStats; 
@@ -147,6 +160,10 @@ function calcDiceStats(state, oldDices, newDices) {
 }
 
 function useSkill(state, skillName) {
+    if (state.player.throwsLeft == 0) {
+        console.error("Can't performe this action user is dead");
+        return;
+    }
     if (state.rollStats.length == 0) {
         engine.trigger("no-active-roll");
         return;
@@ -165,6 +182,12 @@ function attack(state) {
         engine.trigger("enemy-is-dead");
     }
     engine.trigger("enemy-health-changed", state.monster);
+
+    state.rollStats[sideTypes.SwordWood.id] = 0;
+    engine.trigger("roll-stats-update", state);
+
+    engine.trigger("disable-dices", state, sideTypes.SwordWood.id);
+
 }
 
 function deadEnemy(state) {
@@ -180,16 +203,16 @@ function deadEnemy(state) {
 
 function removeDiceSide(state, diceIdx, sideIdx) {
     let dice = state.dices[diceIdx];
-    let side = dice[sideIdx];
+    let side = dice.sides[sideIdx];
     state.sides.push(side);
-    dice[sideIdx] = sideTypes.Empty;
+    dice.sides[sideIdx] = sideTypes.Empty;
     engine.trigger("dice-changed", dice, diceIdx);
     engine.trigger("sides-in-inventory-changed", state.sides);
 }
 
 function addDiceSide(state, diceIdx, sideIdx) {
     let side = state.sides[sideIdx];
-    let dice = state.dices[diceIdx];
+    let dice = state.dices.sides[diceIdx];
     for (let i = 0; i < dice.length; ++i) {
         if (dice[i] == sideTypes.Empty) {
             state.sides.splice(sideIdx, 1);

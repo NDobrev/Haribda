@@ -13,7 +13,9 @@ class BattleScreen {
         this.targeElement.appendChild(rednerEnemy(state));
         engine.on("roll-stats-update", updateSkills);
         engine.on("dice-face-changed", updateDaces);
-        engine.on("enemy-health-changed", updateHealth);
+        engine.on("enemy-health-changed", updateEnemyHealth);
+        engine.on("player-health-changed", updateEnemyHealth);
+        engine.on("throw-count-changed", updateThrows);
 
 
         engine.trigger("enemy-health-changed", state.monster);
@@ -63,7 +65,7 @@ function renderBoard(state) {
     let board = document.createElement("div");
     board.id = "board";
     state.dices.forEach((dice, idx) => {
-        let diceEl = createDice(dice);
+        let diceEl = createDice(dice.sides);
         let cube = diceEl.querySelector(".cube");
         let faceId = state.currentRoll[idx] || 0;
         let face = faces[faceId];
@@ -96,6 +98,7 @@ function updateSkillsElement(state , skillSlots) {
         } else {
             skillElement.textContent = `${skill.name}`;
         }
+        skillElement.onclick = () => engine.trigger("use-skill", skill.class);
     }
 }
 
@@ -111,12 +114,26 @@ function renderSkills(state) {
     return skills;
 }
 
-function renderThrowButton() {
+function renderThrowButton(state) {
     let btn = document.createElement("div");
     btn.id = "throw-button";
-    btn.textContent = "Throw";
+    btn.textContent = `Throw(${state.player.throwsLeft})`;
     btn.onclick = () => engine.trigger("throw-dices");
     return btn;
+}
+
+function updateThrows(leftThrows) {
+    let btn = document.getElementById("throw-button");
+    if (leftThrows) {
+        btn.textContent = `Throw(${health})`
+    } else {
+        btn.textContent = "You are dead";
+    }
+}
+
+function updateHealthBar(el, health, maxHealth) {
+    el.children[0].style.width = 100 * (health / maxHealth) + '%';
+    el.children[1].textContent = `${health} / ${maxHealth}`;
 }
 
 function rednerEnemy(state) {
@@ -133,15 +150,9 @@ function rednerEnemy(state) {
     return monster;
 }
 
-function updateHealth(enemy) {
-    let monsterHealth = document.getElementById("enemy-health");
-    let monsterHealthBar = document.getElementById("enemy-bar");
-    monsterHealthBar.style.width = 100 * (enemy.health / enemy.maxHealth) + '%';
-    monsterHealth.textContent = `${enemy.health} / ${enemy.maxHealth}`;
-}
-
-function defence() {
-    console.log("def");
+function updateEnemyHealth(enemy) {
+    let bar = document.getElementById("enemy-health-bar");
+    updateHealthBar(bar, enemy.health, enemy.maxHealth);
 }
 
 function updateDaces(oldfaces, newfaces) {
